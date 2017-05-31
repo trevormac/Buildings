@@ -7,12 +7,41 @@
 //
 
 import UIKit
+import MapKit
+
 
 class ViewController: UIViewController {
+    
+    @IBOutlet weak var mapView: MKMapView!
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
+        //let our view know that the pins are coming in from the background thread
+        NotificationCenter.default.addObserver(forName: BuildingsController.BUILDING_ADDED_NOTIFICATION, object: nil, queue: nil) { notification in
+            let newBuildingPin:MapPin =  notification.object as! MapPin
+            
+            self.mapView.addAnnotation(newBuildingPin)
+        }
+       
+        let buildingsArray:Array = BuildingsController.sharedBuildings()
+        for (_, currentObject) in buildingsArray.enumerated() {
+            let buildingPin:MapPin = currentObject as! MapPin
+            mapView.addAnnotation(buildingPin)
+            
+        }
+        //Map Zoom:
+        //will define how much our map will show
+        let distanceSpan:CLLocationDegrees = 2000
+        //sets our campus location with gps coordinates
+        let bsuCSCampusLocation:CLLocationCoordinate2D = LocationsController.deviceLocation()
+        if bsuCSCampusLocation.latitude != 0.0 {
+            
+        mapView.setRegion(MKCoordinateRegionMakeWithDistance(bsuCSCampusLocation, distanceSpan, distanceSpan), animated: true)
+        }
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
 
     override func didReceiveMemoryWarning() {
